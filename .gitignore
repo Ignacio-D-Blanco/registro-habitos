@@ -1,0 +1,22 @@
+# Dependencias y entornos virtuales
+venv/
+node_modules/
+.next/
+dist/
+build/
+
+# Caché del sistema y de compilación
+__pycache__/
+*.pyc
+.pytest_cache/
+.coverage
+.DS_Store
+Thumbs.db
+
+# Variables de entorno y configuraciones secretas
+.env
+.env*.local
+*.env
+
+# Docker
+docker-compose.override.yml
