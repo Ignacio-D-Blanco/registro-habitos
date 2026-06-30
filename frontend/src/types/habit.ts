@@ -3,6 +3,7 @@ export type FieldType = 'text' | 'number' | 'boolean' | 'date';
 export type VisualizationType = 'table' | 'pie_chart' | 'percentage_bar' | 'line_chart';
 
 export interface HabitDefinition {
+  visualization_type: string;
   id: string;
   name: string;
   description?: string;
@@ -23,3 +24,11 @@ export interface HabitRecord {
   data: Record<string, string | number | boolean>; 
   createdAt: Date;
 }
+
+export interface FieldDefinition {
+  name: string;
+  label: string;
+  type: FieldType;
+  required: boolean;
+}
+

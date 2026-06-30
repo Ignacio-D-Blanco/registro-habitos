@@ -1,8 +1,10 @@
-import './globals.css';
+import './globals.css'; 
+import type { Metadata } from 'next';
+import Sidebar from '../components/Sidebar'; 
 
-export const metadata = {
-  title: 'Generic Habit Tracker',
-  description: 'Sistema dinámico de registro y visualización',
+export const metadata: Metadata = {
+  title: 'Pulse Habits',
+  description: 'Habit Tracker Engine',
 };
 
 export default function RootLayout({
@@ -12,8 +14,11 @@ export default function RootLayout({
 }) {
   return (
     <html lang="es" className="dark">
-      <body className="antialiased bg-background text-textPrimary">
-        {children}
+      <body className="bg-[#0F0F13] text-white antialiased min-h-screen flex">
+        <Sidebar />
+        <div className="flex-1 overflow-y-auto max-h-screen">
+          {children}
+        </div>
       </body>
     </html>
   );

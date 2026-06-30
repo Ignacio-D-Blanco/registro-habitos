@@ -25,12 +25,17 @@ export async function createHabit(habitData: Omit<HabitDefinition, 'id' | 'creat
       },
       body: JSON.stringify(habitData),
     });
+    
     if (!response.ok) {
-      throw new Error('Error al crear el hábito');
+      const errorDetail = await response.json().catch(() => ({ detail: 'Respuesta vacía del servidor' }));
+      console.error('🛑 Error exacto del Backend (Objeto):', errorDetail);
+      
+      throw new Error(`Error al crear el hábito: ${JSON.stringify(errorDetail)}`);
     }
+    
     return await response.json();
   } catch (error) {
-    console.error('API Client Error:', error);
+    console.error('API Client Catched Error:', error);
     return null;
   }
 }

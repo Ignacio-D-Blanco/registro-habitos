@@ -97,3 +97,17 @@ def get_records_by_habit(habit_id: str):
         return response.data
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error al obtener los registros: {str(e)}")
+
+@app.get("/api/habits/{habit_id}")
+def get_habit_definition(habit_id: str):
+    try:
+        response = supabase.table("habit_definitions").select("*").eq("id", habit_id).execute()
+        
+        if not response.data or len(response.data) == 0:
+            raise HTTPException(status_code=404, detail="Hábito no encontrado en la base de datos")
+            
+        return response.data[0]
+    except HTTPException as he:
+        raise he
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error al obtener el hábito: {str(e)}")
