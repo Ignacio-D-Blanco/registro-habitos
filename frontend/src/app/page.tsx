@@ -6,7 +6,7 @@ import { HabitDefinition } from '../types/habit';
 import CreateHabitModal from '../components/CreateHabitModal';
 import Header from '../components/Header';
 import HabitCard from '../components/HabitCard'; 
-import WelcomeBanner from '../components/welcomeBanner'; 
+import WelcomeBanner from '../components/WelcomeBanner'; 
 
 
 export default function DashboardPremium() {
