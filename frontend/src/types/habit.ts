@@ -3,6 +3,7 @@ export type FieldType = 'text' | 'number' | 'boolean' | 'date';
 export type VisualizationType = 'table' | 'pie_chart' | 'percentage_bar' | 'line_chart';
 
 export interface HabitDefinition {
+  targetDays: number;
   visualization_type: string;
   id: string;
   name: string;

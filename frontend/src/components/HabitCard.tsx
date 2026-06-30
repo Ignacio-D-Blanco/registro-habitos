@@ -1,46 +1,102 @@
 'use client';
 
-import { HabitDefinition } from '../types/habit';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { HabitDefinition } from '../types/habit';
 
-interface HabitCardProps {
-  habit: HabitDefinition;
-}
-
-export default function HabitCard({ habit }: HabitCardProps) {
+export default function HabitCard({ habit, selectedDate }: { habit: HabitDefinition, selectedDate: string }) {
   const router = useRouter();
+  const [isCompletedToday, setIsCompletedToday] = useState(false);
+  const [weeklyProgress, setWeeklyProgress] = useState(0); 
+  const [loading, setLoading] = useState(true);
+
+  const targetDays = habit.targetDays || 4;
+
+  useEffect(() => {
+    async function loadData() {
+      try {
+        setLoading(true);
+        const res = await fetch(`http://localhost:8000/api/records/${habit.id}`);
+        const data = await res.json();
+        
+        if (Array.isArray(data)) {
+          const curr = new Date(selectedDate);
+          const firstDayOfWeek = new Date(curr.setDate(curr.getDate() - curr.getDay() + 1)).toISOString().split('T')[0];        
+          const count = data.filter((r: any) => r.date >= firstDayOfWeek).length;
+          setWeeklyProgress(count);
+          const targetRecord = data.find((r: any) => r.date === selectedDate);
+        
+          setIsCompletedToday(!!targetRecord);
+        }
+
+      } catch (error) {
+        console.error('Error cargando registros del hábito:', error);
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadData();
+  }, [habit.id, selectedDate]); 
+
+
+  const handleToggleComplete = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    
+    const newStatus = !isCompletedToday;
+    setIsCompletedToday(newStatus);
+    setWeeklyProgress(prev => newStatus ? prev + 1 : prev - 1);
+
+    try {
+      await fetch('http://localhost:8000/api/records', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          habit_id: habit.id,
+          date: selectedDate, 
+          data: { completed: newStatus },
+        }),
+      });
+    } catch (error) {
+      console.error('Error:', error);
+      setIsCompletedToday(!newStatus);
+      setWeeklyProgress(prev => newStatus ? prev - 1 : prev + 1);
+    }
+  };
 
   return (
-    <article 
-      onClick={() => router.push(`/habit/${habit.id}`)}
-      className="bg-surface/40 backdrop-blur-sm border border-surface hover:border-[#8A2BE2] rounded-2xl p-6 hover:shadow-2xl hover:shadow-[#8A2BE2]/10 transition-all duration-300 flex flex-col justify-between h-48 cursor-pointer group relative overflow-hidden"
+    <div 
+      onClick={() => router.push(`/habit/${habit.id}?date=${selectedDate}`)}
+      className="bg-surface/40 hover:bg-surface/60 backdrop-blur-sm border border-surface hover:border-[#8A2BE2]/40 rounded-2xl p-6 transition-all duration-300 cursor-pointer flex flex-col justify-between h-48 relative overflow-hidden group"
     >
-      <div className="absolute top-0 left-0 w-full h-1 bg-gradient-brand opacity-0 group-hover:opacity-100 transition-opacity" />
-
       <div>
-        <h3 className="text-lg font-bold text-white group-hover:text-[#8A2BE2] transition-colors line-clamp-1">
-          {habit.name}
-        </h3>
-        <p className="text-textSecondary text-xs mt-2 line-clamp-2 leading-relaxed h-8">
-          {habit.description || 'Sin descripción detallada registrada'}
-        </p>
+        <div className="flex justify-between items-start">
+          <h3 className="font-bold text-lg text-white tracking-tight line-clamp-1">{habit.name}</h3>
+          <button 
+            onClick={handleToggleComplete}
+            className={`w-8 h-8 rounded-xl border flex items-center justify-center transition-all ${
+              isCompletedToday 
+                ? 'bg-gradient-brand border-transparent text-white' 
+                : 'bg-[#0F0F13] border-surface text-transparent hover:border-[#8A2BE2]/50'
+            }`}
+          >
+            ✓
+          </button>
+        </div>
+        <p className="text-textSecondary text-xs mt-1 line-clamp-2 pr-8">{habit.description}</p>
       </div>
 
-      <div className="space-y-3 pt-4 border-t border-white/5 mt-2">
-        <div className="w-full bg-[#0F0F13] rounded-full h-1.5 overflow-hidden">
-          <div className="bg-gradient-brand w-[15%] h-full rounded-full transition-all group-hover:w-[30%]"></div>
+      <div className="space-y-2">
+        <div className="flex justify-between items-center text-xs font-semibold text-textSecondary">
+          <span>Progreso semanal</span>
+          <span className="text-white font-bold">{weeklyProgress} / {targetDays}</span>
         </div>
-        
-        <div className="flex justify-between items-center text-[11px] font-medium">
-          <span className="px-3 py-1 rounded-full bg-[#0F0F13] border border-surface text-textSecondary capitalize tracking-wide">
-            {String(habit.visualization_type || habit.visualizationType || 'tabla').replace('_', ' ')}
-          </span>
-          <span className="flex items-center gap-1.5 font-semibold text-[#B030B0] bg-[#B030B0]/10 px-2.5 py-0.5 rounded-full border border-[#B030B0]/20">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#B030B0] animate-pulse" />
-            {habit.fields?.length || 0} Campos
-          </span>
+        <div className="w-full h-1.5 bg-[#0F0F13] rounded-full overflow-hidden border border-white/5">
+          <div 
+            className="h-full bg-gradient-brand transition-all duration-500 rounded-full" 
+            style={{ width: `${Math.min((weeklyProgress / targetDays) * 100, 100)}%` }}
+          />
         </div>
       </div>
-    </article>
+    </div>
   );
 }

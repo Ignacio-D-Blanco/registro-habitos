@@ -1,4 +1,4 @@
-// Archivo: frontend/src/lib/api.ts
+import router from 'next/router';
 import { HabitDefinition, HabitRecord } from '../types/habit';
 
 const API_BASE_URL = 'http://localhost:8000';
@@ -39,3 +39,22 @@ export async function createHabit(habitData: Omit<HabitDefinition, 'id' | 'creat
     return null;
   }
 }
+
+const handleDelete = async () => {
+  if (confirm("¿Estás seguro de que quieres eliminar este hábito? Se borrarán todos los registros asociados permanentemente.")) {
+    try {
+      const res = await fetch(`http://localhost:8000/api/habits/${params.id}`, {
+        method: 'DELETE',
+      });
+      
+      if (res.ok) {
+        alert("Hábito eliminado correctamente");
+        router.push('/');
+      } else {
+        alert("Error al intentar eliminar el hábito");
+      }
+    } catch (error) {
+      console.error("Error de red:", error);
+    }
+  }
+};
